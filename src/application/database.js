@@ -1,5 +1,5 @@
-import { PrismaClient } from "@prisma/client/extension";
-import { logger } from "./logging";
+import { PrismaClient } from "@prisma/client";
+import { logger } from "../application/logging.js";
 
 //To use Event-based Logging
 export const prismaClient = new PrismaClient({
