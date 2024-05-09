@@ -1,3 +1,4 @@
+//Route for user who hasn't authenticated yet
 import express from "express";
 import userController from "../controller/user-controller.js";
 
