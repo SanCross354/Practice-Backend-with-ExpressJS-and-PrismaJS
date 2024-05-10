@@ -1,5 +1,5 @@
 import { validate } from "../validation/validation.js";
-import { getUserValidation, loginUserValidation, registerUserValidation } from "../validation/user-validation.js";
+import { getUserValidation, loginUserValidation, registerUserValidation, updateUserValidation } from "../validation/user-validation.js";
 import { prismaClient } from "../application/database.js"
 import { ResponseError } from "../error/response-error.js";
 import bcrypt from "bcrypt";
@@ -87,9 +87,45 @@ const get = async (username) => {
     return user;
 }
 
+const update = async (request) => {
+    const user = validate(updateUserValidation, request);
+
+    const totalUserInDatabase = await prismaClient.user.count({
+        where: {
+            username: user.username
+        }
+    });
+
+    //If user's not found
+    if (totalUserInDatabase !== 1) {
+        throw new ResponseError(404, "User is not found");
+    }
+
+    const data = {};
+    //If the user has name properties then update
+    if (user.name) {
+        data.name = user.name;
+    }
+    if (user.password) {
+        data.password = await bcrypt.hash(user.password, 10);
+    }
+
+    return prismaClient.user.update({
+        where: {
+            username: user.username
+        },
+        data: data,
+        select: {
+            username: true,
+            name: true
+        }
+    });
+}
+
 //Using "default" cause can export more than one object/variables
 export default {
     register,
     login,
-    get
+    get,
+    update
 }
