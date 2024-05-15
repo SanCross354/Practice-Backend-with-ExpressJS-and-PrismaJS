@@ -85,3 +85,70 @@ describe('GET /api/contacts/:contactId', function () {
         expect(result.body.errors).toBeDefined();
     });
 });
+
+describe('PUT /api/contacts/:contactId', function () {
+    beforeEach(async () => {
+        await createTestUser();
+        await createTestContact();
+    })
+
+    afterEach(async () => {
+        await removeAllTestContacts();
+        await removeTestUser();
+    })
+
+    it('should can update existing contact', async () => {
+        const testContact = await getTestContact();
+
+        const result = await supertest(web)
+            .put('/api/contacts/' + testContact.id)
+            .set('Authorization', 'test')
+            .send({
+                first_name: "Wildan",
+                last_name: "Ahmad",
+                email: "wildan@ahmad.com",
+                phone: "09090909009"
+            });
+        
+        expect(result.status).toBe(200);
+        expect(result.body.data.id).toBe(testContact.id);
+        expect(result.body.data.first_name).toBe("Wildan");
+        expect(result.body.data.last_name).toBe("Ahmad");
+        expect(result.body.data.email).toBe("wildan@ahmad.com");
+        expect(result.body.data.phone).toBe("09090909009");
+    });
+
+    it('should reject if request is invalid', async () => {
+        const testContact = await getTestContact();
+
+        const result = await supertest(web)
+            .put('/api/contacts/' + testContact.id)
+            .set('Authorization', 'test')
+            .send({
+                first_name: "",
+                last_name: "Ahmad",
+                email: "com",
+                phone: ""
+            });
+        
+        expect(result.status).toBe(400);
+        expect(result.body.errors).toBeDefined();
+    });
+
+    it('should reject if contact is not found', async () => {
+        const testContact = await getTestContact();
+
+        const result = await supertest(web)
+            .put('/api/contacts/' + (testContact.id + 1)) //by adding the contact id by 1 (make it incorrect)
+            .set('Authorization', 'test')
+            .send({
+                first_name: "Wildan",
+                last_name: "Ahmad",
+                email: "wildan@ahmad.com",
+                phone: "09090909009"
+            });
+        
+        expect(result.status).toBe(404);
+        expect(result.body.errors).toBeDefined();
+    });
+});
