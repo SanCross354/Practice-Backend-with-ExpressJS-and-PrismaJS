@@ -109,7 +109,7 @@ describe('PUT /api/contacts/:contactId', function () {
                 email: "wildan@ahmad.com",
                 phone: "09090909009"
             });
-        
+
         expect(result.status).toBe(200);
         expect(result.body.data.id).toBe(testContact.id);
         expect(result.body.data.first_name).toBe("Wildan");
@@ -130,7 +130,7 @@ describe('PUT /api/contacts/:contactId', function () {
                 email: "com",
                 phone: ""
             });
-        
+
         expect(result.status).toBe(400);
         expect(result.body.errors).toBeDefined();
     });
@@ -147,8 +147,45 @@ describe('PUT /api/contacts/:contactId', function () {
                 email: "wildan@ahmad.com",
                 phone: "09090909009"
             });
-        
+
         expect(result.status).toBe(404);
         expect(result.body.errors).toBeDefined();
     });
+});
+
+describe('DELETE /api/contacts/:contactId', function () {
+    beforeEach(async () => {
+        await createTestUser();
+        await createTestContact();
+    })
+
+    afterEach(async () => {
+        await removeAllTestContacts();
+        await removeTestUser();
+    })
+
+    it('should can delete contact', async () => {
+        let testContact = await getTestContact();
+        const result = await supertest(web)
+            .delete('/api/contacts/' + testContact.id)
+            .set('Authorization', 'test');
+
+        expect(result.status).toBe(200);
+        expect(result.body.data).toBe("OK");
+
+        //Checking if the data is already removed or not
+        testContact = await getTestContact();
+        expect(testContact).toBeNull();
+    });
+
+    it('should reject if the contact is not found', async () => {
+        let testContact = await getTestContact();
+        const result = await supertest(web)
+            .delete('/api/contacts/' + (testContact.id + 1))
+            .set('Authorization', 'test');
+
+        expect(result.status).toBe(404);
+        expect(result.body.errors).toBeDefined();
+    });
+    
 });
